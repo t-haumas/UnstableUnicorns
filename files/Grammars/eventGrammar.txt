@@ -1,0 +1,2 @@
+after EffectPhase self
+prior Actions {from otherField item chosen by self to myField} && turnPlayer != self

@@ -1,0 +1,90 @@
+card:
+    action "."
+action:
+    steps
+steps:
+    andgroup "or" steps
+    andgroup
+andgroup:
+    step "and" andgroup
+    step
+step:
+    movement
+    "set" var "to" value
+    "change" var "by" number
+    "add watcher" TODO
+    "(" steps ")"
+    function
+var:
+    char
+char:
+    "x"
+    "y"
+    "z"
+TODO:
+    "TODO"
+number:
+    digit
+digit:
+    "0"
+    "1"
+    "2"
+    "3"
+    "4"
+    "5"
+    "6"
+    "7"
+    "8"
+    "9"
+add:
+    TODO
+function:
+    "shuffle"
+value:
+    "true"
+    "false"
+    digit
+movement:
+    "from" from "to" to
+from:
+    "nursery"
+    deck
+    "graveyard"
+    myHand
+    myField
+    otherHand
+    otherField
+to:
+    deckTop
+    "graveyard"
+    "myHand"
+    "myField"
+    "otherHand"
+    "otherField"
+deckTop:
+    "top of deck"
+deck:
+    deckTop
+    "deck search" "{" searchTerm "}"
+searchTerm:
+    actions
+actions:
+    action
+    action "," actions
+myHand:
+    "myHand chosen by" choicesRS
+choicesRS:
+    "random"
+    "self"
+myField:
+    "myField"
+otherHand:
+    "otherHand item chosen by" choicesRST
+otherField:
+    "otherField item chosen by" choicesST
+choicesRST:
+    choicesRS
+    "them"
+choicesST:
+    "self"
+    "them"

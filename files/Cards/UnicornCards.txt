@@ -1,0 +1,2 @@
+Prismatic Bray:
+    from myHand chosen by self to graveyard and from otherField item chosen by them to graveyard or from myHand chosen by self to graveyard and from myHand chosen by self to graveyard and from otherField item chosen by them to graveyard and from otherField item chosen by them to graveyard.
