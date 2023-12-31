@@ -313,7 +313,7 @@ public class ProgramCompleter {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
         JTextArea programDraftArea = new JTextArea();
-        programDraftArea.setHighlighter(null);
+        programDraftArea.setEditable(false);
 
         JPopupMenu suggestionMenu = new JPopupMenu();
 
@@ -321,9 +321,6 @@ public class ProgramCompleter {
         KeyStroke cmdDelKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
         draftAreaInputMap.put(cmdDelKeyStroke, "Cmd+Del");
         ActionMap draftAreaActionMap = programDraftArea.getActionMap();
-
-        draftAreaInputMap.put(KeyStroke.getKeyStroke("LEFT"), "none");
-        draftAreaInputMap.put(KeyStroke.getKeyStroke("UP"), "none");
 
         draftAreaActionMap.put("Cmd+Del", new AbstractAction() {
                 @Override
@@ -340,44 +337,22 @@ public class ProgramCompleter {
                 }
             }
         });
-
-        programDraftArea.addCaretListener(new CaretListener() {
-            public void caretUpdate(CaretEvent ce) {
-                if (ce.getDot() != programDraftArea.getDocument().getLength()) {
-                    programDraftArea.setCaretPosition(programDraftArea.getDocument().getLength());
-                }
-            }
-        });
             
         programDraftArea.addKeyListener(new KeyListener() {
 
             @Override
-            public void keyPressed(KeyEvent e) {
+            public void keyTyped(KeyEvent e) {
                 handleKeyPressed(e);
             }
 
             public void handleKeyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    System.out.println("Left");
-                    //programDraftArea.setCaretPosition(programDraftArea.getDocument().getLength());
-                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    // Right arrow key pressed
-                    System.out.println("Right arrow key pressed");
-                } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                    Runnable update = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            updateGivenDelete(programDraftArea.getText(0, programDraftArea.getDocument().getLength()));
-                        } catch (BadLocationException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-                    };
-                    SwingUtilities.invokeLater(update);
-                } else {
-                    insertUpdate(e);
+                try {
+                    programDraftArea.getDocument().insertString(programDraftArea.getDocument().getLength(),
+                            "" + e.getKeyChar(), null);
+                } catch (BadLocationException e1) {
+                    throw new RuntimeException(e1);
                 }
+                insertUpdate(e);
             }
 
             public void insertUpdate(KeyEvent e) {
@@ -400,9 +375,8 @@ public class ProgramCompleter {
                     if (nextPossibilities.size() == 1) {
                         programDraftArea.getDocument().insertString(programDraftArea.getDocument().getLength(), nextPossibilities.get(0), null);
                         programDraftArea.setCaretPosition(programDraftArea.getDocument().getLength());
-                    } else {
-                        standardUpdateGivenText(text);
                     }
+                    standardUpdateGivenText(programDraftArea.getText(0, programDraftArea.getDocument().getLength()));
                 } catch (BadLocationException e) {
                     throw new RuntimeException(e);
                 }
@@ -445,7 +419,28 @@ public class ProgramCompleter {
             }
 
             @Override
-            public void keyTyped(KeyEvent e) {}
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                    System.out.println("Left pressed; change this to remove until a new suggestion is possible.");
+                    try {
+                        programDraftArea.getDocument().remove(programDraftArea.getDocument().getLength() - 1, 1);
+                        Runnable update = new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    updateGivenDelete(programDraftArea.getText(0, programDraftArea.getDocument().getLength()));
+                                } catch (BadLocationException e1) {
+                                    e1.printStackTrace();
+                                }
+                            }
+                        };
+                        SwingUtilities.invokeLater(update);
+                    } catch (BadLocationException e1) {}
+                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    // Right arrow key pressed
+                    System.out.println("Right arrow key pressed");
+                }
+            }
 
             @Override
             public void keyReleased(KeyEvent e) {}
