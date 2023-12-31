@@ -6,9 +6,9 @@
     "configurations": [
         {
             "type": "java",
-            "name": "CardBuilder",
+            "name": "ProgramCompleter",
             "request": "launch",
-            "mainClass": "code.Parser.CardBuilder",
+            "mainClass": "code.ProgramGrammarHelpers.ProgramCompleter",
             "projectName": "UnstableUnicorns_4005a4ea",
             "args": "cardGrammar.txt"
         }

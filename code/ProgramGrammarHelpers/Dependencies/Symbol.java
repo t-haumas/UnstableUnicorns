@@ -1,4 +1,4 @@
-package code.Parser;
+package code.ProgramGrammarHelpers.Dependencies;
 
 public class Symbol {
 
@@ -35,6 +35,18 @@ public class Symbol {
     public boolean equals(Object o) {
         Symbol s = (Symbol) o;
         return this.name.equals(s.name) && this.type == s.type;
+    }
+
+    public char getLastChar() {
+        return name.charAt(name.length() - 1);
+    }
+
+    public boolean startsWith(Symbol s) {
+        return name.startsWith(s.name);
+    }
+
+    public char getFirstChar() {
+        return name.charAt(0);
     }
 
 }

@@ -1,4 +1,4 @@
-package code.Parser;
+package code.ProgramGrammarHelpers.Dependencies;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,26 +1,30 @@
 package code;
 
 import static org.junit.Assert.*;
+
+import org.junit.Before;
 import org.junit.Test;
 
-import code.Parser.CardParser;
+import code.ProgramGrammarHelpers.GrammarReader;
+import code.ProgramGrammarHelpers.ProgramCompleter;
+import code.ProgramGrammarHelpers.Dependencies.Grammar;
 
 public class ParserTester {
 
-    @Test
-    public void testGetOutput() {
-        assertTrue(new CardParser().getOutput().equals("Hello"));
+    private ProgramCompleter cardBuilder;
+
+    @Before
+    public void setup() {
+        GrammarReader grammarReader = new GrammarReader("cardGrammar.txt");
+        Grammar myGrammar = grammarReader.getGrammar();
+        cardBuilder = new ProgramCompleter(myGrammar);
     }
 
     @Test
-    public void testGetOuputFail() {
-        assertTrue(! new CardParser().getOutput().equals("Hi"));
-    }
-
-    @Test
-    public void testGetOutputPass() {
-        assertEquals(new CardParser().getOutput(), "Hello");
-    }
-    
+    public void testFromRecommendations() {
+        System.out.println(cardBuilder.getPossibilities("f"));
+        assertTrue(cardBuilder.getPossibilities("f").get(0).equals("rom"));
+        assertTrue(cardBuilder.getPossibilities("f").size() == 1);
+    }    
 
 }
