@@ -1,14 +1,10 @@
-package code.ProgramGrammarHelpers;
+package code.ProgramGrammarHelpers.Dependencies;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
-
-import code.ProgramGrammarHelpers.Dependencies.Grammar;
-import code.ProgramGrammarHelpers.Dependencies.Symbol;
-import code.ProgramGrammarHelpers.Dependencies.SymbolType;
 
 /**
  * 

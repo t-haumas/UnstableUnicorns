@@ -5,9 +5,9 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import code.ProgramGrammarHelpers.GrammarReader;
-import code.ProgramGrammarHelpers.ProgramCompleter;
 import code.ProgramGrammarHelpers.Dependencies.Grammar;
+import code.ProgramGrammarHelpers.Dependencies.GrammarReader;
+import code.ProgramGrammarHelpers.Dependencies.ProgramCompleter;
 
 public class ParserTester {
 

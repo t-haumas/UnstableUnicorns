@@ -22,12 +22,6 @@ public class ExpandableProgram {
         List<Symbol> text = new LinkedList<>();
         for (int i = 0; i < programSymbols.size() && text.size() <= desiredLength; i++) {
             if (programSymbols.get(i).getType() == SymbolType.TERMINAL) {
-                // if (i > 0) {
-                //     if ((! Arrays.asList(grammar.getNoSpaceBefores()).contains(programSymbols.get(i).getValue().charAt(0) + "")) &&
-                //         (!Arrays.asList(grammar.getNoSpaceAfters()).contains(programSymbols.get(i - 1).getValue()))) {
-                //         text += " ";
-                //     }
-                // }
                 text.add(programSymbols.get(i).clone());
             } else {
                 break;
@@ -123,6 +117,14 @@ public class ExpandableProgram {
         return programSymbols.get(0).getValue();
     }
 
+    public boolean isCompleteProgram() {
+        for (Symbol programSymbol : programSymbols) {
+            if (programSymbol.getType() != SymbolType.TERMINAL) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public String toString() {
         String output = "";
@@ -130,11 +132,11 @@ public class ExpandableProgram {
             if (programSymbols.get(i).getType() == SymbolType.TERMINAL) {
                 output += programSymbols.get(i).getValue();
             } else {
-                break;
+                output += "~" + programSymbols.get(i).getValue() + "~";
             }
+            output += " ";
         }
-
-        return output;
+        return output.substring(0, output.length() - 1);
     }
 
 
