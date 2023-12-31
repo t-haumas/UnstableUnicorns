@@ -1,4 +1,4 @@
-package code.ProgramGrammarHelpers.Dependencies;
+package code.ProgramGrammarHelpers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,7 +7,12 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-import code.ProgramGrammarHelpers.ProgramCompleterGUI;
+import code.ProgramGrammarHelpers.Dependencies.ExpandableProgram;
+import code.ProgramGrammarHelpers.Dependencies.Grammar;
+import code.ProgramGrammarHelpers.Dependencies.GrammarReader;
+import code.ProgramGrammarHelpers.Dependencies.SuggestionResultsList;
+import code.ProgramGrammarHelpers.Dependencies.SuggestionResultsSet;
+import code.ProgramGrammarHelpers.Dependencies.Symbol;
 
 public class ProgramCompleter {
 

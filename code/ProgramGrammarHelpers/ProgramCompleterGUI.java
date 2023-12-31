@@ -30,7 +30,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import code.ProgramGrammarHelpers.Dependencies.Grammar;
-import code.ProgramGrammarHelpers.Dependencies.ProgramCompleter;
 import code.ProgramGrammarHelpers.Dependencies.SuggestionResultsList;
 
 public class ProgramCompleterGUI {
