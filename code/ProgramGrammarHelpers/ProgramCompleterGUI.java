@@ -1,9 +1,12 @@
 package code.ProgramGrammarHelpers;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -12,58 +15,97 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.MenuElement;
+import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 import javax.swing.event.MenuKeyEvent;
 import javax.swing.event.MenuKeyListener;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-import code.ProgramGrammarHelpers.Dependencies.Grammar;
 import code.ProgramGrammarHelpers.Dependencies.SuggestionResultsList;
 
 public class ProgramCompleterGUI {
     
+    private final class LeftArrowDeletionAction extends AbstractAction {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Left pressed; change this to remove until a new suggestion is possible.");
+            try {
+                draftArea.getDocument().remove(draftArea.getDocument().getLength() - 1, 1);
+                Runnable update = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            updateGivenDelete(draftArea.getText(0, draftArea.getDocument().getLength()));
+                        } catch (BadLocationException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                };
+                SwingUtilities.invokeLater(update);
+            } catch (BadLocationException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
     private final ProgramCompleter suggestionGetter;
     private final Document draftTextDocument;
     private final JTextArea draftArea;
     private final JPopupMenu suggestionMenu;
+    private final Robot robot;
 
     public ProgramCompleterGUI(ProgramCompleter suggestionGetter) {
         this.suggestionGetter = suggestionGetter;
         draftArea = new JTextArea();
         draftTextDocument = draftArea.getDocument();
         suggestionMenu = new JPopupMenu();
+        try {
+            robot = new Robot();
+        } catch (AWTException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
     public void start() {
-        //TODO: fix parenthesis issue. (())
+        //TODO: clean up and organize this code. Including moving To-Dos elsewhere.
+        //TODO: Check if need to add tab, enter, space button pressing and whitespace adding functionality.
+
         //TODO: fix faster backspacing.
         //TODO: make it so only possibilities are allowed to be typed. And whitespace.
+
         //TODO: make 3 window areas, for drafts and saving drafts.
+        //TODO: fix parenthesis issue. (())     And check why bad program for parenthesis.
 
 
+        //TODO: check for and remove strange menu rendering regarding initial opening of the menu.
+        //TODO: Deal with bad location invalid remove.
         //TODO: get rid of all the extra printings.
+
+        //Extra:
+        //TODO: When window resized, call showSuggestionBox.
+        //TODO: find a cleaner way to keep the popupmenu in bounds of the window.
 
         try {
             UIManager.setLookAndFeel(new NimbusLookAndFeel());//UIManager.getCrossPlatformLookAndFeelClassName());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
 
         
         JFrame window = new JFrame("Program Completer");
@@ -84,7 +126,9 @@ public class ProgramCompleterGUI {
             public void mouseReleased(MouseEvent e) {}
 
             private void maybeShowPopup(MouseEvent e) {
-                updateSuggestionBox();
+                if (! suggestionMenu.isVisible()) {
+                    updateSuggestionBox();
+                }
             }
 
             @Override
@@ -104,22 +148,23 @@ public class ProgramCompleterGUI {
         draftArea.setEditable(false);
         draftArea.setLineWrap(true);
         draftArea.setWrapStyleWord(true);
-        draftArea.addCaretListener(new CaretListener() {
+        // THIS WAS For when I was trying to use an editable textarea.
+        // draftArea.addCaretListener(new CaretListener() {
 
-            @Override
-            public void caretUpdate(CaretEvent e) {
-                if (e.getDot() != draftArea.getDocument().getLength()) {
-                    draftArea.setCaretPosition(draftArea.getDocument().getLength());
-                }
-            }
+        //     @Override
+        //     public void caretUpdate(CaretEvent e) {
+        //         if (e.getDot() != draftArea.getDocument().getLength()) {
+        //             draftArea.setCaretPosition(draftArea.getDocument().getLength());
+        //         }
+        //     }
             
-        });
+        // });
 
         InputMap draftAreaInputMap = draftArea.getInputMap();
-        KeyStroke cmdDelKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-        draftAreaInputMap.put(cmdDelKeyStroke, "Cmd+Del");
         ActionMap draftAreaActionMap = draftArea.getActionMap();
 
+        KeyStroke cmdDelKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        draftAreaInputMap.put(cmdDelKeyStroke, "Cmd+Del");
         draftAreaActionMap.put("Cmd+Del", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -135,6 +180,39 @@ public class ProgramCompleterGUI {
                 }
             }
         });
+
+        Action leftArrowDeletionAction = new LeftArrowDeletionAction();
+
+        draftAreaInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "leftArrow");
+        draftAreaActionMap.put("leftArrow", leftArrowDeletionAction);
+
+        suggestionMenu.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "leftArrow");
+        suggestionMenu.getActionMap().put("leftArrow", leftArrowDeletionAction);
+
+        draftAreaInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "leftArrow");
+        suggestionMenu.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "leftArrow");
+
+        draftAreaInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "upArrow");
+        draftAreaActionMap.put("upArrow", new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                focusOnSuggestionsMenu();
+                selectLastSuggestion();
+            }
+
+        });
+
+        draftAreaInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "focusSuggestions");
+        draftAreaInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "focusSuggestions");
+        draftAreaActionMap.put("focusSuggestions", new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                focusOnSuggestionsMenu();
+            }
+
+        });
             
         draftArea.addKeyListener(new KeyListener() {
 
@@ -144,12 +222,15 @@ public class ProgramCompleterGUI {
             }
 
             public void handleKeyPressed(KeyEvent e) {
-                try {
-                    draftArea.getDocument().insertString(draftArea.getDocument().getLength(), "" + e.getKeyChar(), null);
-                } catch (BadLocationException e1) {
-                    throw new RuntimeException(e1);
+                if ('A' <= e.getKeyChar() && e.getKeyChar() <= 'Z' || 'a' <= e.getKeyChar() && e.getKeyChar() <= 'z') {
+                    try {
+                        draftArea.getDocument().insertString(draftArea.getDocument().getLength(), "" + e.getKeyChar(),
+                                null);
+                    } catch (BadLocationException e1) {
+                        throw new RuntimeException(e1);
+                    }
+                    insertUpdate(e);
                 }
-                insertUpdate(e);
             }
 
             public void insertUpdate(KeyEvent e) {
@@ -181,33 +262,10 @@ public class ProgramCompleterGUI {
                 }
             }
 
-            private void updateGivenDelete(String text) {
-                updateSuggestionBox();
-            }
+            
 
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    System.out.println("Left pressed; change this to remove until a new suggestion is possible.");
-                    try {
-                        draftArea.getDocument().remove(draftArea.getDocument().getLength() - 1, 1);
-                        Runnable update = new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    updateGivenDelete(draftArea.getText(0, draftArea.getDocument().getLength()));
-                                } catch (BadLocationException e1) {
-                                    e1.printStackTrace();
-                                }
-                            }
-                        };
-                        SwingUtilities.invokeLater(update);
-                    } catch (BadLocationException e1) {}
-                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    // Right arrow key pressed
-                    System.out.println("Right arrow key pressed");
-                    suggestionMenu.requestFocus();
-                }
             }
 
             @Override
@@ -222,27 +280,55 @@ public class ProgramCompleterGUI {
         window.setVisible(true);
 
         updateSuggestionBox();
+
+    }
+
+    protected void selectLastSuggestion() {
+        MenuSelectionManager.defaultManager().setSelectedPath(new MenuElement[] { suggestionMenu, suggestionMenu.getSubElements()[suggestionMenu.getSubElements().length - 1] });
+    }
+
+    private void updateGivenDelete(String text) {
+        updateSuggestionBox();
+    }
+
+    protected void focusOnSuggestionsMenu() {
+        if (suggestionMenu.isVisible()) {
+            suggestionMenu.requestFocusInWindow();
+            MenuSelectionManager.defaultManager().setSelectedPath(new MenuElement[] { suggestionMenu, suggestionMenu.getSubElements()[0] });
+        }
     }
 
     private void updateSuggestionBox() {
         String currentText = getDraftText();
-        if (currentText.startsWith("shuffle.")) {
-            System.out.println("here");
-        }
         SuggestionResultsList nextPossibilities = suggestionGetter.getPossibilities(currentText);
         if (nextPossibilities.size() == 0) {
             // Program is either complete or invalid.
-            suggestionMenu.setVisible(false);
+            
             if (nextPossibilities.isComplete()) {
                 //  Program is complete
+                //TODO: Currently, adding junk on the end still considers the program complete. Fix it if the only addding valid stuff doesn't.
                 System.out.println("Complete program!!");
             } else {
                 //  Program is invalid.
                 System.out.println("Bad program, no suggestions.");
             }
+            SwingUtilities.invokeLater(new Runnable() {
+
+                @Override
+                public void run() {
+                    suggestionMenu.setVisible(false);
+                    draftArea.requestFocusInWindow();
+                }
+            });
+            
         } else {
             showSuggestionBox(nextPossibilities);
         }
+    }
+
+    protected void click() {
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
     private void showSuggestionBox(SuggestionResultsList nextPossibilities) {
@@ -257,21 +343,26 @@ public class ProgramCompleterGUI {
                 }
             });
 
-            menuItem.addKeyListener(new KeyListener() {
+            menuItem.addMenuKeyListener(new MenuKeyListener() {
 
                 @Override
-                public void keyTyped(KeyEvent e) {}
+                public void menuKeyTyped(MenuKeyEvent e) {}
 
                 @Override
-                public void keyPressed(KeyEvent e) {
+                public void menuKeyPressed(MenuKeyEvent e) {
                     int keyCode = e.getKeyCode();
-                    if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_RIGHT) {
-                        insertTextToDraft(possibility);
+                    if ((keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_RIGHT)) {
+                        System.out.println("pressed on menu");
+                        MenuElement[] items = MenuSelectionManager.defaultManager().getSelectedPath();
+                        if (items.length > 1) {
+                            insertTextToDraft(((JMenuItem) items[1]).getText());
+                            focusOnSuggestionsMenu();
+                        }
                     }
                 }
 
                 @Override
-                public void keyReleased(KeyEvent e) {}
+                public void menuKeyReleased(MenuKeyEvent e) {}
                 
             });
 
@@ -283,7 +374,9 @@ public class ProgramCompleterGUI {
             Rectangle2D caretBounds = draftArea.modelToView2D(draftArea.getCaretPosition());
             suggestionMenu.show(draftArea, (int) caretBounds.getX(),
                     (int) (caretBounds.getY() + caretBounds.getHeight()));
-            draftArea.requestFocus();
+            suggestionMenu.show(draftArea, Math.min((int) caretBounds.getX(), draftArea.getWidth() - suggestionMenu.getWidth()),
+            (int) (caretBounds.getY() + caretBounds.getHeight()));
+            draftArea.requestFocusInWindow();
 
         } catch (BadLocationException e) {
             throw new RuntimeException(e);
