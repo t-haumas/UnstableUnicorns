@@ -26,6 +26,9 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.MenuKeyEvent;
+import javax.swing.event.MenuKeyListener;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -49,12 +52,15 @@ public class ProgramCompleterGUI {
 
     public void start() {
         //TODO: fix parenthesis issue. (())
-        //TODO: make it not scrollable, make it wrap.
         //TODO: fix faster backspacing.
-        //TODO: disable tips disappearing.
+        //TODO: make it so only possibilities are allowed to be typed. And whitespace.
+        //TODO: make 3 window areas, for drafts and saving drafts.
+
+
+        //TODO: get rid of all the extra printings.
 
         try {
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            UIManager.setLookAndFeel(new NimbusLookAndFeel());//UIManager.getCrossPlatformLookAndFeelClassName());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -96,9 +102,8 @@ public class ProgramCompleterGUI {
         mainPanel.setLayout(new BorderLayout());
         
         draftArea.setEditable(false);
+        draftArea.setLineWrap(true);
         draftArea.setWrapStyleWord(true);
-
-
         draftArea.addCaretListener(new CaretListener() {
 
             @Override
@@ -201,6 +206,7 @@ public class ProgramCompleterGUI {
                 } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
                     // Right arrow key pressed
                     System.out.println("Right arrow key pressed");
+                    suggestionMenu.requestFocus();
                 }
             }
 
@@ -247,10 +253,26 @@ public class ProgramCompleterGUI {
             menuItem.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    draftArea.insert(possibility, draftArea.getCaretPosition());
-                    suggestionMenu.setVisible(false);
-                    updateSuggestionBox();
+                    insertTextToDraft(possibility);
                 }
+            });
+
+            menuItem.addKeyListener(new KeyListener() {
+
+                @Override
+                public void keyTyped(KeyEvent e) {}
+
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    int keyCode = e.getKeyCode();
+                    if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_RIGHT) {
+                        insertTextToDraft(possibility);
+                    }
+                }
+
+                @Override
+                public void keyReleased(KeyEvent e) {}
+                
             });
 
             suggestionMenu.add(menuItem);
@@ -266,6 +288,12 @@ public class ProgramCompleterGUI {
         } catch (BadLocationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void insertTextToDraft(String s) {
+        draftArea.insert(s, draftArea.getCaretPosition());
+        suggestionMenu.setVisible(false);
+        updateSuggestionBox();
     }
 
     private String getDraftText() {
