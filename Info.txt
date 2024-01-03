@@ -1,0 +1,18 @@
+-------------------------
+---File hierarchy info---
+-------------------------
+
+'code' is where the code for the project actually is.
+'lib' was put there by vsCode to assist in JUnit test functionality.
+'extras' is stuff that might get deleted. Just files to give me ideas / help.
+'files' is where data files go that are used by the project.
+
+
+--------------------------------
+---My documentation standards---
+--------------------------------
+
+In javadoc comments: 
+    - Always capitalize the first word, end with a period.
+    - After @param, use ' - '. Do not use ' - ' after @return.
+    - Try to use complete sentences.

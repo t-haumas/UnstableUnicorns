@@ -1,8 +1,6 @@
 package code.ProgramGrammarHelpers;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
@@ -14,44 +12,94 @@ import code.ProgramGrammarHelpers.Dependencies.SuggestionResultsList;
 import code.ProgramGrammarHelpers.Dependencies.SuggestionResultsSet;
 import code.ProgramGrammarHelpers.Dependencies.Symbol;
 
+/**
+ * A class to be instantiated that finds next suggestions for a program being
+ * written (called a draft) given a grammar, which must be provided to the
+ * Program Completer.
+ */
 public class ProgramCompleter {
 
     private Grammar grammar;
     private static final String COMPLETE_PROGRAM_SIGNIFIER = "~";
 
-    public ProgramCompleter(Grammar cardGrammar) {
-        this.grammar = cardGrammar;
+    /**
+     * Standard constructor for a ProgramCompleter. 
+     * @param programGrammar - The Grammar from which to build programs.
+     */
+    public ProgramCompleter(Grammar programGrammar) {
+        this.grammar = programGrammar;
     }
 
-    public SuggestionResultsList getPossibilities(String buildingString) {
+    /**
+     * Given a draft, returns the list of possible strings that could be appended to
+     * the program such that the program is still a valid program.
+     * 
+     * @param draft - The draft program.
+     * @return A SuggestionResultsList of the next possible Strings for the draft.
+     *         SuggestionResultsList also contains info about whether the draft is a
+     *         complete program or not.
+     */
+    public SuggestionResultsList getPossibilities(String draft) {
         SuggestionResultsList possibilities = new SuggestionResultsList();
-        possibilities = getPossibilitiesWithLengthenedSingles(buildingString);
-        possibilities.sort();
 
+        /*  There could be many different preferences on how to determine what
+            suggestions are given. I'm using dependency injection (I think) here to
+            redirect this function to another one that contains the real functionality so
+            behavior could be changed later if desired. */
+        possibilities = getPossibilitiesWithLengthenedSingles(draft);
+
+        possibilities.sort();
         return possibilities;
     }
 
-    private SuggestionResultsList getPossibilitiesWithLengthenedSingles(String buildingString) {
-        SuggestionResultsSet possibilitiesSet = getNextPossibilities(buildingString);
+    /**
+     * Given a draft, returns next possibilities for the program. If any of the
+     * possibilities only have one child next possibility, the child is
+     * automatically appended to the parent possibility. This is done to exhaustion
+     * so there will never be two lists of only one possibility in a row.
+     * 
+     * @param draft - The draft program being written.
+     * @return A list of the next possibilities for the program, with each
+     *         possibility being as long as possible.
+     */
+    private SuggestionResultsList getPossibilitiesWithLengthenedSingles(String draft) {
+
+        //  First, just get the raw next possibilities for the draft.
+        SuggestionResultsSet possibilitiesSet = getNextPossibilities(draft);
+
+        //  Set up what will be returned.
         SuggestionResultsList possibilities = new SuggestionResultsList(possibilitiesSet);
+
         for (int i = 0; i < possibilities.size(); i++) {
             String possibility = possibilities.get(i);
-            int numNextPossibilities = getNextPossibilities(buildingString + possibility).size();
+            
+            //  For each possibility, see how many child possibilities it has.
+            int numNextPossibilities = getNextPossibilities(draft + possibility).size();
             if (numNextPossibilities == 1) {
-                possibilities.set(i, possibility + getPossibilitiesLengthenedIfSingle(buildingString + possibility).get(0));
+                //  If there is exactly one child possibility, lengthen that child possibility as much as possible.
+                possibilities.set(i, possibility + getPossibilitiesLengthenedIfSingle(draft + possibility).get(0));
             }
         }
         return possibilities;
     }
 
-    private SuggestionResultsList getPossibilitiesLengthenedIfSingle(String buildingString) {
+    /**
+     * If the draft has only one next possibility, this function lengthens that
+     * possibility as much as possible. Otherwise, returns the raw list of next
+     * possbilities for the draft.
+     * 
+     * @param draft - The draft program being written.
+     * @return a list of possibilities for the draft. If only one possibility is
+     *         returned, that possibility is guaranteed to be as long as possible.
+     */
+    private SuggestionResultsList getPossibilitiesLengthenedIfSingle(String draft) {
         SuggestionResultsList possibilities;
-        SuggestionResultsSet possibilitiesSet = getNextPossibilities(buildingString);
+        SuggestionResultsSet possibilitiesSet = getNextPossibilities(draft);
         if (possibilitiesSet.size() == 1) {
             String nextPossibility = "";
             while (possibilitiesSet.size() == 1) {
                 nextPossibility += possibilitiesSet.getElementIfOnlyElement();
-                possibilitiesSet = getNextPossibilities(buildingString + nextPossibility);
+                possibilitiesSet = getNextPossibilities(draft + nextPossibility);
             }
             possibilities = new SuggestionResultsList();
             possibilities.add(nextPossibility);
@@ -207,33 +255,6 @@ public class ProgramCompleter {
         return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9';
     }
 
-    /*
-    private <T> String join(List<T> list, String delimiter) {
-        
-        if (list.size() == 0) return "";
-
-        StringBuilder joined = new StringBuilder();
-
-        for (int i = 0; i < list.size() - 1; i++) {
-            String current = list.get(i).toString();
-            String next = list.get(i + 1).toString();
-            joined.append(current);
-            if (! grammar.atBorder(current.charAt(current.length() - 1), next.charAt(0))) {
-                joined.append(delimiter);
-            }
-        }
-
-        joined.append(list.get(list.size() - 1).toString());
-
-        //  "a b "
-        //  2, 3
-
-        //  joined.delete(joined.length() - delimiter.length(), joined.length());
-
-
-        return joined.toString();
-    } */
-
     /**
      * Tests if the first list starts with the second list.
      * 
@@ -275,35 +296,23 @@ public class ProgramCompleter {
 
         gui.start();
 
-        if (false) {
+        //  A command-line method to interact with the ProgramCompleter.
 
-            String currentString = "";
-            Scanner inputGetter = new Scanner(System.in);
 
-            while (!currentString.equals("exit")) {
-                List<String> nextPossibilities = cardBuilder.getPossibilities(currentString).getStringList();
-                for (String s : nextPossibilities) {
-                    System.out.println(s.replaceAll(" ", "-"));
-                }
-                System.out.print("-> ");
-                currentString = inputGetter.nextLine();
-                System.err.println(myGrammar.tokenize(currentString));
-                System.err.println("|" + currentString + "|");
-
-            }
-
-            inputGetter.close();
-        }
+        // if (false) {
+        //     String currentString = "";
+        //     Scanner inputGetter = new Scanner(System.in);
+        //     while (!currentString.equals("exit")) {
+        //         List<String> nextPossibilities = cardBuilder.getPossibilities(currentString).getStringList();
+        //         for (String s : nextPossibilities) {
+        //             System.out.println(s.replaceAll(" ", "-"));
+        //         }
+        //         System.out.print("-> ");
+        //         currentString = inputGetter.nextLine();
+        //         System.err.println(myGrammar.tokenize(currentString));
+        //         System.err.println("|" + currentString + "|");
+        //     }
+        //     inputGetter.close();
+        // }
     }
-
-// Long-term TODO for unicorns
-
-
-//TODO: TWO PARENTHESIS ISN'T VALID FOR SOME REASON!
-
-//TODO: implement card functionality 
-//TODO: card database explorer. Called program database. Make a way for every program to have an auto-generated name which is the same as its auto-generated number ID, which comes from what decisions were made in its creation. Could have some mod() operator to condense the name. Or use base 64 encoding, idk.
-//TODO: remove extraneous areas of the card grammar.
-//TODO: once the card grammar is done, make an event grammar. Maybe start making the game first.
-//TODO: optional: make a program that reads and re-formats grammar files? Makes some way for you to clean it up / work with it?
 }

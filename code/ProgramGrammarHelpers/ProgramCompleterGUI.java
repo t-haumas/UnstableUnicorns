@@ -82,23 +82,6 @@ public class ProgramCompleterGUI {
     }
 
     public void start() {
-        //TODO: clean up and organize this code. Including moving To-Dos elsewhere.
-        //TODO: Check if need to add tab, enter, space button pressing and whitespace adding functionality.
-
-        //TODO: fix faster backspacing.
-        //TODO: make it so only possibilities are allowed to be typed. And whitespace.
-
-        //TODO: make 3 window areas, for drafts and saving drafts.
-        //TODO: fix parenthesis issue. (())     And check why bad program for parenthesis.
-
-
-        //TODO: check for and remove strange menu rendering regarding initial opening of the menu.
-        //TODO: Deal with bad location invalid remove.
-        //TODO: get rid of all the extra printings.
-
-        //Extra:
-        //TODO: When window resized, call showSuggestionBox.
-        //TODO: find a cleaner way to keep the popupmenu in bounds of the window.
 
         try {
             UIManager.setLookAndFeel(new NimbusLookAndFeel());//UIManager.getCrossPlatformLookAndFeelClassName());

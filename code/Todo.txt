@@ -1,0 +1,62 @@
+Legend:
+    -x-: x is a priority letter. Priority letter legend:
+        -a-: Must be completed eventually.
+        -b-: I want to complete eventually for me to consider the project good and complete.
+        -1-: Up next on my personal to-do-list. Do these tasks soon.
+        -2-: If no 1s, do 2s. 2s become 1s.
+    -x-(y): y is its id.
+    -x-(y then z): z is its id, y is the pre-requisite's id.
+
+----------------
+---TODO Tasks---
+----------------
+
+Todo.txt
+    - Move all other TODOS into this file.
+    - Reformat all TDL items in this file.
+
+Documentation:
+    -2- Document all other files (look in dependencies folder).
+
+ProgramCompleterGUI
+    -1- clean up and organize code in ProgramCompleterGUI.
+        - Go through, make comments and javadocs, make sure you understand, remove unnecessary.
+    -1- Clean up, organize, and document ProgramCompleter Code.
+
+    -1- fix faster backspacing.
+    -1-(restrict) make it so only possibilities are allowed to be typed.
+        - And whitespace.
+    -2-(restrict then whitespace) Check if need to add tab, enter, space button pressing and whitespace adding functionality.
+
+
+    //TODO: make 3 window areas, for drafts and saving drafts.
+    //TODO: fix parenthesis issue. (())     And check why bad program for parenthesis.
+
+
+    //TODO: check for and remove strange menu rendering regarding initial opening of the menu.
+    //TODO: Deal with bad location invalid remove.
+    //TODO: get rid of all the extra printings.
+
+    //Extra:
+    //TODO: When window resized, call showSuggestionBox.
+    //TODO: find a cleaner way to keep the popupmenu in bounds of the window.
+
+
+ProgramCompleter
+    -1- Move main method of ProgramCompleter to a new file called Launcher.java. That should be the only file with a main method.
+    -2- //TODO: TWO PARENTHESIS ISN'T VALID FOR SOME REASON!
+
+    //TODO: implement card functionality 
+    //TODO: card database explorer. Called program database. Make a way for every program to have an auto-generated name which is the same as its auto-generated number ID, which comes from what decisions were made in its creation. Could have some mod() operator to condense the name. Or use base 64 encoding, idk.
+    //TODO: remove extraneous areas of the card grammar.
+    //TODO: once the card grammar is done, make an event grammar. Maybe start making the game first.
+    //TODO: optional: make a program that reads and re-formats grammar files? Makes some way for you to clean it up / work with it?
+
+Grammars
+    -b- Create grammar importing functionality in the grammar file reader.
+        - That way I can import the event grammar into the card grammar and vice versa. Actually, they both need each other. The question is just what is the goal noce.
+
+Optional Project Extensions
+    - Create a Grammar creator application. 
+        - Removes unused.
+        - Organizes / sorts? Sorts by dependency? Finds dangling non-terminals? Tells you goal node?
