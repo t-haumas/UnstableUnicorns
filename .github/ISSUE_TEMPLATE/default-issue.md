@@ -7,6 +7,4 @@ assignees: t-haumas
 
 ---
 
-Be sure to include:
-- [ ] Label
-- [ ] Priority
+
