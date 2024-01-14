@@ -112,26 +112,58 @@ public class ProgramCompleter {
     }
 
     /**
-     * Use this if you want it to give you look-ahead predictions when there's only one option.
-     * AKA using this method will prevent the predictions from ever providing only one option.
+     * Returns a List of possibilites for the next String in the draft. However, the
+     * list will try not to have a length of 1. This function will continue down the
+     * tree of possibilities until there is more than one option.
+     * This method would have to be refactored a bit to be used by the
+     * ProgramCompleter.
+     * Use this if you want it to give you look-ahead predictions when there's only
+     * one option. AKA using this method will prevent the predictions from ever
+     * providing only
+     * one option.
+     * I'm not sure if this will be useful but I made it nonetheless, maybe it will
+     * be used in the future.
      * 
-     * @param buildingString
-     * @param extraString
-     * @return
+     * @param draft       - The draft program being written.
+     * @param extraString - I think this is used internally for recursion to build
+     *                    up the possibilities that will be returned. I believe the
+     *                    correct functionality is to pass in the empty string in
+     *                    the initial call.
+     * @return a list of possibilities for the draft. This function tries to make
+     *         that list have more than 1 element. It extends possibilities until
+     *         there are multiple options.
      */
-    private List<String> getManyPossibilities(String buildingString, String extraString) {
-        SuggestionResultsSet possibilitiesResults = getNextPossibilities(buildingString);
+    @SuppressWarnings(value = { "unused" })
+    private List<String> getManyPossibilities(String draft, String extraString) {
+
+        //  First, just get the normal possibilities set.
+        SuggestionResultsSet possibilitiesResults = getNextPossibilities(draft);
         Set<String> possibilities = possibilitiesResults.getStringSet();
+
         if (possibilities.size() == 1) {
+            //  If there's only one possibility, get it and store it in the variable littleString.
             String littleString = possibilities.iterator().next();
-            String nextString = buildingString + littleString;
+
             if (littleString.length() != 0) {
+                //  The next draft to build off of is the current draft + littleString.
+                String nextString = draft + littleString;
+
+                //  Get many possibilities for the next draft.
                 return getManyPossibilities(nextString, extraString + littleString);
             }
         }
+
+        //  If we get to this point in the function, then there was more than one possibility.
         List<String> result = new ArrayList<>();
         result.addAll(possibilities);
         for (int i = 0; i < result.size(); i++) {
+
+            // If this is the intial call, extraString will be empty and the following will
+            // not change anything.
+            // If this is a recursive call, extraString is how we stored everything else
+            // that was added to the draft before the current possibilities were generated.
+            // So, we must add extraString as a prefix to all the possibilities that have
+            // been generated.
             result.set(i, extraString + result.get(i));
             if (result.get(i).length() == 0) {
                 if (result.size() == 1) {
@@ -147,33 +179,67 @@ public class ProgramCompleter {
         return result;
     }
 
-    private SuggestionResultsSet getNextPossibilities(String buildingString) {
+    /**
+     * Gets a Set of possibilities of next strings for a given draft. This function
+     * gets the standard set of next possibilities. Nothing fancy, just what is
+     * everything that could come next.
+     * 
+     * @param draft - The current draft program.
+     * @return A SuggestionResultsSet, which is a set containing all the possible
+     *         next Strings for the draft. Also contains info about whether or not
+     *         the draft is a complete program.
+     */
+    private SuggestionResultsSet getNextPossibilities(String draft) {
         SuggestionResultsSet possibilities = new SuggestionResultsSet();
+
+        //  Create a seed program to expand to search for a valid program that starts with the draft.
         ArrayList<Symbol> possibleProgram = new ArrayList<>();
         possibleProgram.add(grammar.getNewGoalSymbol());
         ExpandableProgram currentProgram = new ExpandableProgram(possibleProgram, grammar);
-        expandAndCheck(buildingString, currentProgram, possibilities);
+
+        // Search for all valid programs that start with the draft, and store the next
+        // possibilities in the SuggestionResultsSet.
+        expandAndCheck(draft, currentProgram, possibilities);
         return possibilities;
     }
 
-    private void expandAndCheck(String draftProgramString, ExpandableProgram program, SuggestionResultsSet possibilities) {
-        // TODO: I could refactor this method body to use Lists of Strings instead of Lists of Symbols.
-        String originalDraftString = draftProgramString;
+    /**
+     * Used to find next possibilities for a given draft program.
+     * The caller must provide the draft, a seed program to expand, and a reference
+     * to a SuggestionResultsSet to store the results.
+     * The method is designed this way because it is called recursively.
+     * 
+     * The seed program used in the initial call (passed in as the currentProgram
+     * formal parameter) should be an ExpandableProgram that is just a program
+     * comprised of the goal node of a grammar (non-terminal).
+     * 
+     * When the initial call returns, possibilities will contain the next
+     * possibilities for the draft.
+     * 
+     * @param draft          - The draft program being written.
+     * @param currentProgram - The current ExpandableProgram that is being expanded
+     *                       to search for possible programs given the grammar that
+     *                       match the draft.
+     * @param possibilities  - A reference to a SuggestionResultsSet where the
+     *                       results (next possibilities) will be stored.
+     */
+    private void expandAndCheck(String draft, ExpandableProgram currentProgram, SuggestionResultsSet possibilities) {
+        //String originalDraftString = draft;   // Might need to pass this in to the recursive call, idk.
         boolean draftEndsWithWhitespace;
-        if (draftProgramString.length() == 0) {
+        if (draft.length() == 0) {
             draftEndsWithWhitespace = false;
         } else {
-            draftEndsWithWhitespace = grammar.isWhitespace(draftProgramString.charAt(draftProgramString.length() - 1));
+            draftEndsWithWhitespace = grammar.isWhitespace(draft.charAt(draft.length() - 1));
         }
-        List<ExpandableProgram> expansions = program.getNextExpansions();
+        List<ExpandableProgram> expansions = currentProgram.getNextExpansions();
         if (expansions.size() == 0) {
             possibilities.setComplete(true);
             return;
         }
         for (int x = 0; x < expansions.size(); x++) {
             ExpandableProgram nextProgram = expansions.get(x);
-            List<Symbol> draftTokens = grammar.tokenize(draftProgramString);
-            List<Symbol> nextProgramTokens = nextProgram.getText(draftTokens.size());
+            List<String> draftTokens = grammar.tokenize(draft);
+            List<String> nextProgramTokens = nextProgram.getText(draftTokens.size());
             boolean possiblyNeedToContinueToExpand;
             if (draftTokens.size() == 0) {
                 possiblyNeedToContinueToExpand = nextProgramTokens.size() == 0;
@@ -183,7 +249,7 @@ public class ProgramCompleter {
             
             if (possiblyNeedToContinueToExpand) {
                 if (startsWith(draftTokens, nextProgramTokens)) {
-                    expandAndCheck(originalDraftString, nextProgram, possibilities);
+                    expandAndCheck(draft, nextProgram, possibilities);
                 }
             } else {
                 if (startsWith(nextProgramTokens, draftTokens)) {
@@ -193,7 +259,7 @@ public class ProgramCompleter {
                             * The nextProgram completes it.                     */
                         if (! draftEndsWithWhitespace) {
                             //  In the draft, the incomplete token is not followed by whitespace. This is good, because otherwise the whitespace would signify that the token is complete.
-                            possibilities.add(nextProgramTokens.get(draftTokens.size() - 1).getValue().substring(draftTokens.get(draftTokens.size() - 1).getValue().length()));
+                            possibilities.add(nextProgramTokens.get(draftTokens.size() - 1).substring(draftTokens.get(draftTokens.size() - 1).length()));
                         }
                     } else {
                         //  Maybe completed the current token, but definitely also added another whole one.
@@ -203,8 +269,7 @@ public class ProgramCompleter {
                             while (nextProgramTokens.size() > 1) {
                                 nextProgramTokens.remove(nextProgramTokens.size() - 1);
                             }
-                            //possibilities.add(join(nextProgramTokens, " "));    //TODO: is this join necessary?
-                            possibilities.add(nextProgramTokens.get(0).getValue());
+                            possibilities.add(nextProgramTokens.get(0));
                             continue;
                         }
                         if (nextProgramTokens.get(draftTokens.size() - 1).equals(draftTokens.get(draftTokens.size() - 1))) {
@@ -215,15 +280,15 @@ public class ProgramCompleter {
 
                             if (draftEndsWithWhitespace) {
                                 // Do not add a space before the recommendation.
-                                possibilities.add(nextProgramTokens.get(nextProgramTokens.size() - 1).getValue());
+                                possibilities.add(nextProgramTokens.get(nextProgramTokens.size() - 1));
                             } else {
                                 if (requireSpaceToSeparate(nextProgramTokens.get(nextProgramTokens.size() - 2), nextProgramTokens.get(nextProgramTokens.size() - 1))) {
                                     // add recommendation with space only.
-                                    possibilities.add(" " + nextProgramTokens.get(nextProgramTokens.size() - 1).getValue());
+                                    possibilities.add(" " + nextProgramTokens.get(nextProgramTokens.size() - 1));
                                 } else {
                                     // add recommendation with space and without.
-                                    possibilities.add(" " + nextProgramTokens.get(nextProgramTokens.size() - 1).getValue());
-                                    possibilities.add(nextProgramTokens.get(nextProgramTokens.size() - 1).getValue());
+                                    possibilities.add(" " + nextProgramTokens.get(nextProgramTokens.size() - 1));
+                                    possibilities.add(nextProgramTokens.get(nextProgramTokens.size() - 1));
                                 }
                             }
                         } else {
@@ -231,14 +296,9 @@ public class ProgramCompleter {
                             if (!draftEndsWithWhitespace) {
                                 // The draft doesn't end with whitespace, which is good, because that would mean
                                 // the last token is supposedly complete.
-                                        // while (nextProgramTokens.size() > draftTokens.size()) {
-                                        //       // Get rid of the added tokens so we only have the one that needs to be
-                                        //      // completed.
-                                        //        // TODO: skip this step, just ignore it. Act as if the sizes of the lists are
-                                        //        // the same.
-                                        //     nextProgramTokens.remove(nextProgramTokens.size() - 1);
-                                        // }
-                                possibilities.add(nextProgramTokens.get(draftTokens.size() - 1).getValue().substring(draftTokens.get(draftTokens.size() - 1).getValue().length()));
+
+                                //TODO: What is going on here? Break it down.
+                                possibilities.add(nextProgramTokens.get(draftTokens.size() - 1).substring(draftTokens.get(draftTokens.size() - 1).length()));
                             }
                         }
                     }
@@ -247,8 +307,8 @@ public class ProgramCompleter {
         }
     }
 
-    private boolean requireSpaceToSeparate(Symbol s1, Symbol s2) {
-        return isAlphanumeric(s1.getLastChar()) && isAlphanumeric(s2.getFirstChar());
+    private boolean requireSpaceToSeparate(String s1, String s2) {
+        return isAlphanumeric(s1.charAt(s1.length() - 1)) && isAlphanumeric(s2.charAt(0));
     }
 
     private boolean isAlphanumeric(char c) {
@@ -262,7 +322,7 @@ public class ProgramCompleter {
      * @param prefixList
      * @return true or false.
      */
-    private boolean startsWith(List<Symbol> longerList, List<Symbol> prefixList) {
+    private boolean startsWith(List<String> longerList, List<String> prefixList) {
 
         // System.out.println("ab".startsWith("a"));        TRUE
         // System.out.println("ab".startsWith("ab"));       TRUE
@@ -288,7 +348,7 @@ public class ProgramCompleter {
 
     public static void main(String[] args) {
         
-        GrammarReader grammarReader = new GrammarReader(args[0]);   //TODO: detect grammar files automatically and asks the user which one they want to use.
+        GrammarReader grammarReader = new GrammarReader(args[0]);
         Grammar myGrammar = grammarReader.getGrammar();
         ProgramCompleter cardBuilder = new ProgramCompleter(myGrammar);
 

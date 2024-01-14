@@ -74,7 +74,7 @@ public class Grammar {
         return NO_SPACE_AFTER;
     }
 
-    public List<Symbol> tokenize(String program) {
+    public List<String> tokenize(String program) {
         /**
          * Skip opening whitespace
          * Deopsit beginCursor at beginning of current token.
@@ -105,13 +105,12 @@ public class Grammar {
 
         String preparedProgram = prepareStringForTokenization(program);
 
-        ArrayList<Symbol> tokens = new ArrayList<>();
+        ArrayList<String> tokens = new ArrayList<>();
 
         java.util.Scanner tokenSplitter = new java.util.Scanner(preparedProgram);
 
         while(tokenSplitter.hasNext()) {
-            String nextToken = tokenSplitter.next();
-            tokens.add(new Symbol(nextToken, SymbolType.TERMINAL));
+            tokens.add(tokenSplitter.next());
         }
 
         tokenSplitter.close();

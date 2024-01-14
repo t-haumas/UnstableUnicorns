@@ -16,3 +16,12 @@ In javadoc comments:
     - Always capitalize the first word, end with a period.
     - After @param, use ' - '. Do not use ' - ' after @return.
     - Try to use complete sentences.
+
+
+--------------------
+---Things to Note---
+--------------------
+
+ProgramCompleter.java:
+    - There is a SuppressWarnings for an unused function because I thought maybe I'd want to use it later.
+

@@ -289,7 +289,6 @@ public class ProgramCompleterGUI {
             
             if (nextPossibilities.isComplete()) {
                 //  Program is complete
-                //TODO: Currently, adding junk on the end still considers the program complete. Fix it if the only addding valid stuff doesn't.
                 System.out.println("Complete program!!");
             } else {
                 //  Program is invalid.

@@ -1,7 +1,6 @@
 package code.ProgramGrammarHelpers.Dependencies;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,11 +17,11 @@ public class ExpandableProgram {
         this.grammar = grammar;
     }
 
-    public List<Symbol> getText(int desiredLength) {
-        List<Symbol> text = new LinkedList<>();
+    public List<String> getText(int desiredLength) {
+        List<String> text = new LinkedList<>();
         for (int i = 0; i < programSymbols.size() && text.size() <= desiredLength; i++) {
             if (programSymbols.get(i).getType() == SymbolType.TERMINAL) {
-                text.add(programSymbols.get(i).clone());
+                text.add(programSymbols.get(i).getValue());
             } else {
                 break;
             }
@@ -72,39 +71,10 @@ public class ExpandableProgram {
         return nextPrograms;
     }
 
-    private void removeUnwantedSpaces() {
-        for (int i = 1; i < programSymbols.size(); i++) {
-            if (Arrays.asList(grammar.getNoSpaceBefores()).contains(programSymbols.get(i).getValue().charAt(0) + "")) {
-                if (programSymbols.get(i - 1).getValue().charAt(programSymbols.get(i - 1).getValue().length() - 1) == ' ') {
-                    programSymbols.get(i - 1).setText(programSymbols.get(i - 1).getValue().substring(0, programSymbols.get(i - 1).getValue().length() - 1));
-                }
-            }
-        }
-    }
-
     private List<Symbol> getProgramCopy(List<Symbol> production) {
         ArrayList<Symbol> copy = new ArrayList<>();
         for (Symbol symbol : production) {
             copy.add(symbol.clone());
-        }
-        return copy;
-    }
-
-    private List<Symbol> getProgramCopyAndAddSpaces(List<Symbol> production) {
-        ArrayList<Symbol> copy = new ArrayList<>();
-        for (int i = 0; i < production.size(); i++) {
-            Symbol symbol = production.get(i);
-            Symbol newSymbol = symbol.clone();
-
-            if (production.get(i).getType() == SymbolType.TERMINAL) {
-                String newText = symbol.getValue();
-                if (!Arrays.asList(grammar.getNoSpaceAfters()).contains(symbol.getValue())) {
-                    newText += " ";
-                }
-                newSymbol.setText(newText);
-            }
-
-            copy.add(newSymbol);
         }
         return copy;
     }
